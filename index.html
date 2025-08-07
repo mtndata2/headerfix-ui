@@ -3,117 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HeaderFix Configurator</title>
+  <title>HeaderFix - Secure Your Site</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 2rem;
+      font-family: system-ui, sans-serif;
+      margin: 2rem;
       background: #f9f9f9;
+      color: #222;
     }
-    h1 {
-      color: #00704A;
+    h1, h2 {
+      color: #0b5c3b;
     }
-    select, button {
+    select, pre, button {
+      margin-top: 1rem;
       padding: 0.5rem;
-      margin-top: 0.5rem;
       font-size: 1rem;
     }
-    .preview {
+    pre {
       background: #fff;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       padding: 1rem;
-      margin-top: 1rem;
       white-space: pre-wrap;
-      font-family: monospace;
+      word-break: break-word;
     }
     .note {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #444;
+      background: #e8f5e9;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-left: 4px solid #388e3c;
+    }
+    code {
+      background: #eee;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>🛡️ HeaderFix Policy Configurator</h1>
 
-  <label for="policy">Choose a Security Policy:</label>
-  <select id="policy">
-    <option value="strict">Strict</option>
-    <option value="moderate" selected>Moderate</option>
-    <option value="loose">Loose</option>
-    <option value="adsense">AdSense-Compatible (for monetized sites)</option>
-  </select>
+<h1>🔐 HeaderFix Configurator</h1>
+<p>Select your preferred security policy:</p>
+<select id="policy">
+  <option value="moderate">Moderate (Default)</option>
+  <option value="strict">Strict</option>
+  <option value="loose">Loose</option>
+  <option value="adsense">AdSense-Compatible</option>
+</select>
 
-  <div class="note">
-    Select a level above and copy the headers below to use in your Cloudflare Worker.
-  </div>
+<h2>🛡️ Preview Security Headers</h2>
+<pre id="preview">Loading...</pre>
+<button onclick="copyHeaders()">📋 Copy Headers</button>
 
-  <div id="preview" class="preview"></div>
+<p>🔗 <a id="test-link" href="https://headerfix.mtndatasales.workers.dev/?policy=moderate" target="_blank">Test This Policy Live</a></p>
 
-  <button onclick="copyHeaders()" style="background: #00704A; color: white; border: none; margin-top: 1rem;">
-    📋 Copy Headers
-  </button>
+<div class="note">
+  <h3>⚡ Easy Setup (No Code Needed)</h3>
+  <p>
+    After selecting a security policy above, point your domain to our Worker:
+  </p>
+  <ol>
+    <li>Log in to <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> and select your domain.</li>
+    <li>Go to <strong>Workers & Pages → Workers</strong></li>
+    <li>Click <strong>Add Route</strong></li>
+    <li>In <strong>Route</strong>, enter: <code>example.com/*</code></li>
+    <li>In <strong>Worker</strong>, select or paste: <code>headerfix.mtndatasales.workers.dev</code></li>
+    <li>Click <strong>Save</strong></li>
+  </ol>
+  <p>Test your domain like: <code>https://example.com/?policy=adsense</code></p>
+</div>
 
-  <div class="note">
-    <strong>Deployment Steps:</strong><br>
-    1. Go to Cloudflare Dashboard → Workers → Create Worker<br>
-    2. Paste in your Worker code with these headers<br>
-    3. Assign a route like <code>yourdomain.com/*</code><br>
-    4. Disable Rocket Loader, Auto Minify, and Email Obfuscation<br>
-    5. Test your site at <a href="https://securityheaders.com" target="_blank">securityheaders.com</a>
-  </div>
-
-  <script>
-    const preview = document.getElementById("preview");
-    const select = document.getElementById("policy");
-
-    const policies = {
-      strict: {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'",
-        "X-Frame-Options": "DENY",
-        "Referrer-Policy": "no-referrer",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-        "X-Content-Type-Options": "nosniff"
-      },
-      moderate: {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-        "X-Frame-Options": "SAMEORIGIN",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Permissions-Policy": "camera=(), microphone=()",
-        "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
-        "X-Content-Type-Options": "nosniff"
-      },
-      loose: {
-        "Content-Security-Policy": "default-src * 'unsafe-inline'; script-src * 'unsafe-inline'; style-src * 'unsafe-inline'",
-        "X-Frame-Options": "SAMEORIGIN",
-        "Referrer-Policy": "origin",
-        "X-Content-Type-Options": "nosniff"
-      },
-      adsense: {
-        "Content-Security-Policy": "default-src 'self' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://googleads.g.doubleclick.net https://googleadservices.com https://adservice.google.com https://ajax.googleapis.com https://static.cloudflareinsights.com https://fundingchoicesmessages.google.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.gstatic.com https://challenge.cloudflare.com https://*.cloudflare.com https://cdn-cgi/scripts https://cdn-cgi/challenge-platform https://challenges.cloudflare.com https://ep2.adtrafficquality.google https://cdn.jsdelivr.net; img-src 'self' data: https://storage.googleapis.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://www.google-analytics.com https://*.cloudflare.com https://ep1.adtrafficquality.google https://ep1.adtrafficquality.google/pagead/sodar* https://clean-site.pages.dev https://flagcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://www.google.com https://challenges.cloudflare.com https://ep2.adtrafficquality.google; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://adservice.google.com https://ep1.adtrafficquality.google https://*.googlesyndication.com https://www.googletagmanager.com https://*.cloudflare.com https://challenge.cloudflare.com https://cdn-cgi/speculation https://challenges.cloudflare.com; worker-src 'self' blob:; child-src 'self' https://*.cloudflare.com; frame-ancestors 'self'; object-src 'none';",
-        "X-Frame-Options": "SAMEORIGIN",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "X-Content-Type-Options": "nosniff"
-      }
-    };
-
-    function updatePreview() {
-      const selected = select.value;
-      const headers = policies[selected];
-      preview.textContent = Object.entries(headers).map(([k, v]) => `${k}: ${v}`).join('\\n');
+<script>
+  const policies = {
+    strict: {
+      "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "no-referrer",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff"
+    },
+    moderate: {
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=()",
+      "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+      "X-Content-Type-Options": "nosniff"
+    },
+    loose: {
+      "Content-Security-Policy": "default-src * 'unsafe-inline'; script-src * 'unsafe-inline'; style-src * 'unsafe-inline'",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "origin",
+      "X-Content-Type-Options": "nosniff"
+    },
+    adsense: {
+      "Content-Security-Policy": "default-src 'self' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://googleads.g.doubleclick.net https://googleadservices.com https://adservice.google.com https://ajax.googleapis.com https://static.cloudflareinsights.com https://fundingchoicesmessages.google.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.gstatic.com https://challenge.cloudflare.com https://*.cloudflare.com https://cdn-cgi/scripts https://cdn-cgi/challenge-platform https://challenges.cloudflare.com https://ep2.adtrafficquality.google https://cdn.jsdelivr.net; img-src 'self' data: https://storage.googleapis.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://www.google-analytics.com https://*.cloudflare.com https://ep1.adtrafficquality.google https://ep1.adtrafficquality.google/pagead/sodar* https://clean-site.pages.dev https://flagcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://www.google.com https://challenges.cloudflare.com https://ep2.adtrafficquality.google; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://adservice.google.com https://ep1.adtrafficquality.google https://*.googlesyndication.com https://www.googletagmanager.com https://*.cloudflare.com https://challenge.cloudflare.com https://cdn-cgi/speculation https://challenges.cloudflare.com; worker-src 'self' blob:; child-src 'self' https://*.cloudflare.com; frame-ancestors 'self'; object-src 'none';",
+      "X-Frame-Options": "SAMEORIGIN",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "X-Content-Type-Options": "nosniff"
     }
+  };
 
-    function copyHeaders() {
-      navigator.clipboard.writeText(preview.textContent)
-        .then(() => alert(\"✅ Headers copied to clipboard!\"))
-        .catch(() => alert(\"❌ Failed to copy headers.\"));
-    }
+  const select = document.getElementById("policy");
+  const preview = document.getElementById("preview");
+  const link = document.getElementById("test-link");
 
-    select.addEventListener(\"change\", updatePreview);
-    updatePreview(); // initialize on load
-  </script>
+  function updatePreview() {
+    const selected = select.value;
+    const headers = policies[selected];
+    preview.textContent = Object.entries(headers).map(([k, v]) => `${k}: ${v}`).join('\\n');
+    link.href = `https://headerfix.mtndatasales.workers.dev/?policy=${selected}`;
+  }
+
+  function copyHeaders() {
+    navigator.clipboard.writeText(preview.textContent).then(() => {
+      alert("Headers copied to clipboard!");
+    });
+  }
+
+  select.addEventListener("change", updatePreview);
+  updatePreview();
+</script>
+
 </body>
 </html>
