@@ -1,1 +1,119 @@
-hello world
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HeaderFix Configurator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #00704A;
+    }
+    select, button {
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    .preview {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-top: 1rem;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .note {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ HeaderFix Policy Configurator</h1>
+
+  <label for="policy">Choose a Security Policy:</label>
+  <select id="policy">
+    <option value="strict">Strict</option>
+    <option value="moderate" selected>Moderate</option>
+    <option value="loose">Loose</option>
+    <option value="adsense">AdSense-Compatible (for monetized sites)</option>
+  </select>
+
+  <div class="note">
+    Select a level above and copy the headers below to use in your Cloudflare Worker.
+  </div>
+
+  <div id="preview" class="preview"></div>
+
+  <button onclick="copyHeaders()" style="background: #00704A; color: white; border: none; margin-top: 1rem;">
+    📋 Copy Headers
+  </button>
+
+  <div class="note">
+    <strong>Deployment Steps:</strong><br>
+    1. Go to Cloudflare Dashboard → Workers → Create Worker<br>
+    2. Paste in your Worker code with these headers<br>
+    3. Assign a route like <code>yourdomain.com/*</code><br>
+    4. Disable Rocket Loader, Auto Minify, and Email Obfuscation<br>
+    5. Test your site at <a href="https://securityheaders.com" target="_blank">securityheaders.com</a>
+  </div>
+
+  <script>
+    const preview = document.getElementById("preview");
+    const select = document.getElementById("policy");
+
+    const policies = {
+      strict: {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+        "X-Content-Type-Options": "nosniff"
+      },
+      moderate: {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=()",
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff"
+      },
+      loose: {
+        "Content-Security-Policy": "default-src * 'unsafe-inline'; script-src * 'unsafe-inline'; style-src * 'unsafe-inline'",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "origin",
+        "X-Content-Type-Options": "nosniff"
+      },
+      adsense: {
+        "Content-Security-Policy": "default-src 'self' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://googleads.g.doubleclick.net https://googleadservices.com https://adservice.google.com https://ajax.googleapis.com https://static.cloudflareinsights.com https://fundingchoicesmessages.google.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.gstatic.com https://challenge.cloudflare.com https://*.cloudflare.com https://cdn-cgi/scripts https://cdn-cgi/challenge-platform https://challenges.cloudflare.com https://ep2.adtrafficquality.google https://cdn.jsdelivr.net; img-src 'self' data: https://storage.googleapis.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://www.google-analytics.com https://*.cloudflare.com https://ep1.adtrafficquality.google https://ep1.adtrafficquality.google/pagead/sodar* https://clean-site.pages.dev https://flagcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://www.google.com https://challenges.cloudflare.com https://ep2.adtrafficquality.google; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://adservice.google.com https://ep1.adtrafficquality.google https://*.googlesyndication.com https://www.googletagmanager.com https://*.cloudflare.com https://challenge.cloudflare.com https://cdn-cgi/speculation https://challenges.cloudflare.com; worker-src 'self' blob:; child-src 'self' https://*.cloudflare.com; frame-ancestors 'self'; object-src 'none';",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff"
+      }
+    };
+
+    function updatePreview() {
+      const selected = select.value;
+      const headers = policies[selected];
+      preview.textContent = Object.entries(headers).map(([k, v]) => `${k}: ${v}`).join('\\n');
+    }
+
+    function copyHeaders() {
+      navigator.clipboard.writeText(preview.textContent)
+        .then(() => alert(\"✅ Headers copied to clipboard!\"))
+        .catch(() => alert(\"❌ Failed to copy headers.\"));
+    }
+
+    select.addEventListener(\"change\", updatePreview);
+    updatePreview(); // initialize on load
+  </script>
+</body>
+</html>
