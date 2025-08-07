@@ -3,127 +3,114 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HeaderFix - Secure Your Site</title>
+  <title>HeaderFix - Secure Your Site with 1 Click</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      margin: 2rem;
-      background: #f9f9f9;
-      color: #222;
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+      background: #f8f9fa;
     }
-    h1, h2 {
-      color: #0b5c3b;
+    h1 {
+      color: #14532d;
     }
-    select, pre, button {
-      margin-top: 1rem;
-      padding: 0.5rem;
+    select, input, button {
+      padding: 0.6rem;
+      margin-top: 0.5rem;
+      width: 100%;
       font-size: 1rem;
     }
-    pre {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .section {
+      background: white;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .note {
-      background: #e8f5e9;
+    .result {
+      background: #e6ffed;
+      color: #065f46;
       padding: 1rem;
-      margin-top: 2rem;
-      border-left: 4px solid #388e3c;
+      margin-top: 1rem;
+      border-left: 5px solid #10b981;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
     }
     code {
-      background: #eee;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
+  <h1>🔐 HeaderFix Configurator</h1>
+  <p>Secure your site with powerful HTTP headers — no coding needed.</p>
 
-<h1>🔐 HeaderFix Configurator</h1>
-<p>Select your preferred security policy:</p>
-<select id="policy">
-  <option value="moderate">Moderate (Default)</option>
-  <option value="strict">Strict</option>
-  <option value="loose">Loose</option>
-  <option value="adsense">AdSense-Compatible</option>
-</select>
+  <div class="section">
+    <label for="subdomain">Enter your subdomain (e.g. <code>secure.yourdomain.com</code>):</label>
+    <input type="text" id="subdomain" placeholder="secure.example.com" />
 
-<h2>🛡️ Preview Security Headers</h2>
-<pre id="preview">Loading...</pre>
-<button onclick="copyHeaders()">📋 Copy Headers</button>
+    <label for="policy">Choose a policy:</label>
+    <select id="policy">
+      <option value="adsense">Adsense Friendly</option>
+      <option value="strict">Strict</option>
+      <option value="moderate">Moderate (Recommended)</option>
+      <option value="loose">Loose</option>
+    </select>
 
-<p>🔗 <a id="test-link" href="https://headerfix.mtndatasales.workers.dev/?policy=moderate" target="_blank">Test This Policy Live</a></p>
+    <button onclick="generateURL()">Generate Secure Link</button>
 
-<div class="note">
-  <h3>⚡ Easy Setup (No Code Needed)</h3>
-  <p>
-    After selecting a security policy above, point your domain to our Worker:
-  </p>
-  <ol>
-    <li>Log in to <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> and select your domain.</li>
-    <li>Go to <strong>Workers & Pages → Workers</strong></li>
-    <li>Click <strong>Add Route</strong></li>
-    <li>In <strong>Route</strong>, enter: <code>example.com/*</code></li>
-    <li>In <strong>Worker</strong>, select or paste: <code>headerfix.mtndatasales.workers.dev</code></li>
-    <li>Click <strong>Save</strong></li>
-  </ol>
-  <p>Test your domain like: <code>https://example.com/?policy=adsense</code></p>
-</div>
+    <div id="output" class="result" style="display: none;"></div>
+  </div>
 
-<script>
-  const policies = {
-    strict: {
-      "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'",
-      "X-Frame-Options": "DENY",
-      "Referrer-Policy": "no-referrer",
-      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-      "X-Content-Type-Options": "nosniff"
-    },
-    moderate: {
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
-      "Permissions-Policy": "camera=(), microphone=()",
-      "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
-      "X-Content-Type-Options": "nosniff"
-    },
-    loose: {
-      "Content-Security-Policy": "default-src * 'unsafe-inline'; script-src * 'unsafe-inline'; style-src * 'unsafe-inline'",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "origin",
-      "X-Content-Type-Options": "nosniff"
-    },
-    adsense: {
-      "Content-Security-Policy": "default-src 'self' https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://googleads.g.doubleclick.net https://googleadservices.com https://adservice.google.com https://ajax.googleapis.com https://static.cloudflareinsights.com https://fundingchoicesmessages.google.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.gstatic.com https://challenge.cloudflare.com https://*.cloudflare.com https://cdn-cgi/scripts https://cdn-cgi/challenge-platform https://challenges.cloudflare.com https://ep2.adtrafficquality.google https://cdn.jsdelivr.net; img-src 'self' data: https://storage.googleapis.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://www.google-analytics.com https://*.cloudflare.com https://ep1.adtrafficquality.google https://ep1.adtrafficquality.google/pagead/sodar* https://clean-site.pages.dev https://flagcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://securepubads.g.doubleclick.net https://www.google.com https://challenges.cloudflare.com https://ep2.adtrafficquality.google; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://adservice.google.com https://ep1.adtrafficquality.google https://*.googlesyndication.com https://www.googletagmanager.com https://*.cloudflare.com https://challenge.cloudflare.com https://cdn-cgi/speculation https://challenges.cloudflare.com; worker-src 'self' blob:; child-src 'self' https://*.cloudflare.com; frame-ancestors 'self'; object-src 'none';",
-      "X-Frame-Options": "SAMEORIGIN",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
-      "X-Content-Type-Options": "nosniff"
+  <div class="section">
+    <h2>⚙️ Option 2: DNS Proxy Setup (No Workers Needed)</h2>
+    <p>If you can't use Workers directly, follow this guide:</p>
+
+    <ol>
+      <li>Go to your domain in <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a></li>
+      <li>Click <strong>DNS → Add Record</strong></li>
+      <li>Choose:
+        <ul>
+          <li><strong>Type:</strong> <code>CNAME</code></li>
+          <li><strong>Name:</strong> <code>secure</code></li>
+          <li><strong>Target:</strong> <code>headerfix.mtndatasales.workers.dev</code></li>
+          <li><strong>Proxy status:</strong> <strong>Proxied (orange cloud)</strong></li>
+        </ul>
+      </li>
+      <li>Save and Done ✅</li>
+    </ol>
+
+    <p>You can now access:</p>
+    <code>https://secure.yourdomain.com/?policy=adsense</code>
+    <br />
+    <code>https://secure.yourdomain.com/?policy=strict</code>
+  </div>
+
+  <script>
+    function generateURL() {
+      const sub = document.getElementById("subdomain").value.trim();
+      const policy = document.getElementById("policy").value;
+      const output = document.getElementById("output");
+
+      if (!sub || !sub.includes(".")) {
+        output.innerText = "⚠️ Please enter a valid subdomain (like secure.example.com)";
+        output.style.display = "block";
+        return;
+      }
+
+      const link = `https://${sub}/?policy=${policy}`;
+      output.innerHTML = `<strong>Your secure link:</strong><br><a href="${link}" target="_blank">${link}</a>`;
+      output.style.display = "block";
     }
-  };
-
-  const select = document.getElementById("policy");
-  const preview = document.getElementById("preview");
-  const link = document.getElementById("test-link");
-
-  function updatePreview() {
-    const selected = select.value;
-    const headers = policies[selected];
-    preview.textContent = Object.entries(headers).map(([k, v]) => `${k}: ${v}`).join('\\n');
-    link.href = `https://headerfix.mtndatasales.workers.dev/?policy=${selected}`;
-  }
-
-  function copyHeaders() {
-    navigator.clipboard.writeText(preview.textContent).then(() => {
-      alert("Headers copied to clipboard!");
-    });
-  }
-
-  select.addEventListener("change", updatePreview);
-  updatePreview();
-</script>
-
+  </script>
 </body>
 </html>
